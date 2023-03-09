@@ -19,10 +19,16 @@ class UserService
 
     public static function updateUserRole(int $id,int $newRoleId)
     {
+        $isRole=DB::table('roles')->find($newRoleId);
+        if(!$isRole){
+            return response()->json([
+                'error' => "Роли с таким id:$newRoleId не существует",
+            ],404);
+        }
         $updated = DB::table('users')->where('id','=', $id)->update(['roleId' => $newRoleId]);
         if($updated===0){
             return response()->json([
-                'error' => "Неверен id пользователя:$id или id роли:$newRoleId",
+                'error' => "Пользователя с таким id:$id не существует",
             ],404);
         }
         return $updated;
