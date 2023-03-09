@@ -3,7 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DebtController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -18,16 +19,24 @@ use App\Http\Controllers\DebtController;
 Route::controller(AuthController::class)->group(function () {
     Route::post('/registration','registration');
     Route::post('/login','login');
-    Route::post('/check-token','checkToken');
     Route::post('/refresh','refreshTokens');
 });
 
-Route::controller(DebtController::class)->middleware('authedUser')->group(function () {
-    Route::get('/debts-by-house/{build_id}','getHouseDebtors');
-    Route::get('/debts-by-house-and-months/{build_id}/{months}','getHouseDebtorsByMonthsQuant');
-    Route::get('/debts-by-months/{months}','getDebtorsByMonthsQuant');
+Route::controller(RoleController::class)->middleware('adminOnly')->prefix('/roles')->group(function () {
+    Route::get('/all','getAllRoles');
+    Route::get('/one/{roleId}','getRole');
+    Route::post('/create','createRole');
+    Route::put('/update/{roleId}','updateRole');
+    Route::delete('/delete/{roleId}','deleteRole');
 });
 
-Route::controller(HouseController::class)->middleware('authedUser')->group(function () {
-    Route::get('/houses','getHouses');
+Route::controller(UserController::class)->middleware('adminOnly')->prefix('/users')->group(function () {
+    Route::get('/all','getAllUsers');
+    Route::get('/one/{userId}','getUser');
+    Route::put('/update-role/{userId}/{newRoleId}','updateUserRole');
+    Route::delete('/delete/{userId}','deleteUser');
+});
+
+Route::get('/test',function (){
+   return 'hi from api';
 });

@@ -47,9 +47,12 @@ class JwtService {
 
     public function issueAccessToken(array $userData){
         $userTokenInfo=[];
-            if (isset($userData['userId']) && isset($userData['username'])) {
+            if (isset($userData['userId']) && isset($userData['username']) && isset($userData['phone']) && isset($userData['roleId'])) {
                 $userTokenInfo['userId'] = $userData['userId'];
+                $userTokenInfo['roleId'] = $userData['roleId'];
                 $userTokenInfo['username'] = $userData['username'];
+                $userTokenInfo['phone']=$userData['phone'];
+
                 $userTokenInfo['iat'] = time();
                 $userTokenInfo['exp'] = time() + 7200;
 //                7200
@@ -74,8 +77,10 @@ class JwtService {
 
     public function issueRefreshToken(array $userData){
         $userTokenInfo=[];
-            if (isset($userData['userId']) && isset($userData['username'])) {
+            if (isset($userData['userId']) && isset($userData['username']) && isset($userData['phone']) && isset($userData['roleId'])) {
                 $userTokenInfo['userId'] = $userData['userId'];
+                $userTokenInfo['roleId'] = $userData['roleId'];
+                $userTokenInfo['phone']=$userData['phone'];
                 $userTokenInfo['username'] = $userData['username'];
                 $userTokenInfo['iat'] = time();
                 $userTokenInfo['exp'] = time() + 604800;
@@ -109,6 +114,7 @@ class JwtService {
                 $payload_encoded = $tokenParts[1];
 
                 $userData = json_decode($this->base64url_decode($payload_encoded), true);
+//                dd($userData);
                 $newAccessToken = '';
                 $newRefreshToken = '';
                 $newAccessToken = $this->issueAccessToken($userData);
@@ -116,7 +122,7 @@ class JwtService {
                 return json_encode([
                     'accessToken' => $newAccessToken,
                     'refreshToken' => $newRefreshToken
-                ],true);
+                ]);
             } else {
                 throw new Exception('Токен невалиден', 406);
             }
@@ -134,5 +140,17 @@ class JwtService {
                 'accessToken'=>$accessToken,
                 'refreshToken'=>$refreshToken
             ];
+    }
+
+    public function identifyUsersRoleId(string $token){
+        if ($token==null){
+            return null;
+        }
+
+        $tokenParts=explode('.',$token);
+        $payload=$tokenParts[1];
+        $decodedTokenPayload=json_decode($this->base64url_decode($payload),true);
+        $roleId=$decodedTokenPayload['roleId'];
+        return $roleId;
     }
 }

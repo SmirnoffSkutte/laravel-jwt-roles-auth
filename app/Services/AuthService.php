@@ -5,32 +5,42 @@ use App\Services\JwtService;
 use Exception;
 
 class AuthService{
-    public function registration(string $username,string $password){
+    public function registration(string $username,string $password,string $userPhone){
         try
         {
             $jwt=new JwtService();
             $isOldUser=\App\Models\User::where('username',$username)->first();
+            $isOldPhone=\App\Models\User::where('phone',$userPhone)->first();
             if($isOldUser){
-                throw new Exception("Пользователь $username уже есть",406);
+                throw new Exception("Пользователь $username уже зарегистрирован",406);
+            }
+            if($isOldPhone){
+                throw new Exception("Телефон $userPhone уже зарегистрирован",406);
             }
             if(strlen($password)<1){
                 throw new Exception("Придумайте пароль",406);
             }
             $newUser=new \App\Models\User();
             $newUser->username=$username;
-            $newUser->password=password_hash($password,PASSWORD_DEFAULT);;
+            $newUser->phone=$userPhone;
+            $newUser->roleId=1;
+            $newUser->password=password_hash($password,PASSWORD_DEFAULT);
             $newUser->save();
 
             $userInfo=\App\Models\User::where('username',$username)->first();
             $data=[
                 'username'=>$userInfo->username,
-                'userId'=>$userInfo->id
+                'phone'=>$userInfo->phone,
+                'userId'=>$userInfo->id,
+                'roleId'=>$userInfo->roleId
             ];
             $tokens=$jwt->createNewTokenPair($data);
             $responce=[
                 'user'=>[
                     'username'=>$userInfo->username,
+                    'phone'=>$userInfo->phone,
                     'userId'=>$userInfo->id,
+                    'roleId'=>$userInfo->roleId,
                 ],
                 'tokens'=>$tokens,
             ];
@@ -72,6 +82,8 @@ class AuthService{
         }
         $data=[
             'username'=>$user->username,
+            'roleId'=>$user->roleId,
+            'phone'=>$user->phone,
             'userId'=>$user->id
         ];
         return $data;
